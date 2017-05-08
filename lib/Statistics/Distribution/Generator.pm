@@ -68,11 +68,11 @@ class Statistics::Distribution::Generator {
   sub gamma is export { return γ(@_) }
 
   sub γ is export {
-    my ($ℝorder, $θ) = map { $_ // 1 } @_;
-    my $ℤorder = $ℝorder.Int;
-    return Statistics::Distribution::Generator::γ.new(:$ℝorder, :$θ, :$ℤorder);
+    my ($Rorder, $θ) = map { $_ // 1 } @_;
+    my $Zorder = $Rorder.Int;
+    return Statistics::Distribution::Generator::γ.new(:$Rorder, :$θ, :$Zorder);
   }
-
+  
   sub exponential is export {
     my ($λ) = map { $_ // 1 } @_;
     return Statistics::Distribution::Generator::exponential(:$λ);
@@ -138,8 +138,8 @@ class Statistics::Distribution::Generator::supplied is Statistics::Distribution:
 
 class Statistics::Distribution::Generator::γ is Statistics::Distribution::Generator {
 
-  has Numeric $.ℝorder;
-  has Int $.ℤorder;
+  has Numeric $.Rorder;
+  has Int $.Zorder;
   has Numeric $.θ;
 
   sub _tan { sin($_[0]) / cos($_[0]); }
@@ -151,47 +151,47 @@ class Statistics::Distribution::Generator::γ is Statistics::Distribution::Gener
   }
 
   sub _γ_int {
-    my $ℝorder = shift;
-    if ($ℝorder < 12){
+    my $Rorder = shift;
+    if ($Rorder < 12){
       my $prod = 1;
-      loop (my $i = 0; $i < $ℝorder; $i++) {
+      loop (my $i = 0; $i < $Rorder; $i++) {
         $prod *= _rand_nonzero();
       }
       return -log($prod);
     }
     else {
-      return _γ_large_int($ℝorder);
+      return _γ_large_int($Rorder);
     }
   }
 
   sub _γ_large_int {
-    my $ℝorder = shift;
-    my $sqrt = sqrt(2 * $ℝorder - 1);
+    my $Rorder = shift;
+    my $sqrt = sqrt(2 * $Rorder - 1);
     my ($x,$y,$v);
     repeat {
       repeat {
         $y = _tan(pi * rand);
-        $x = $sqrt * $y + $ℝorder - 1;
+        $x = $sqrt * $y + $Rorder - 1;
       } while ($x <= 0);
       $v = rand;
-    } while ($v > (1 + $y * $y) * exp(($ℝorder - 1) * log($x / ($ℝorder - 1)) - $sqrt * $y));
+    } while ($v > (1 + $y * $y) * exp(($Rorder - 1) * log($x / ($Rorder - 1)) - $sqrt * $y));
     return $x;
   }
 
   sub _γ_frac {
-    my $ℝorder = shift;
-    my $p = e / ($ℝorder + e);
+    my $Rorder = shift;
+    my $p = e / ($Rorder + e);
     my ($q, $x, $u, $v);
     do {
       $u = rand;
       $v = _rand_nonzero();
       if ($u < $p){
-        $x = exp((1 / $ℝorder) * log($v));
+        $x = exp((1 / $Rorder) * log($v));
         $q = exp(-$x);
       }
       else {
         $x = 1 - log($v);
-        $q = exp(($ℝorder - 1) * log($x));
+        $q = exp(($Rorder - 1) * log($x));
       }
     } while (rand >= $q);
     return $x;
@@ -199,14 +199,14 @@ class Statistics::Distribution::Generator::γ is Statistics::Distribution::Gener
 
   method FALLBACK {
     my $rv;
-    if ($!ℝorder == $!ℤorder) {
-      $rv = $!θ * _γ_int($!ℤorder);
+    if ($!Rorder == $!Zorder) {
+      $rv = $!θ * _γ_int($!Zorder);
     }
-    elsif ($!ℤorder == 0) {
-      $rv = $!θ * _γ_frac($!ℝorder);
+    elsif ($!Zorder == 0) {
+      $rv = $!θ * _γ_frac($!Rorder);
     }
     else {
-      $rv = $!θ * (_γ_int($!ℤorder) + _γ_frac($!ℤorder - $!ℝorder));
+      $rv = $!θ * (_γ_int($!Zorder) + _γ_frac($!Zorder - $!Rorder));
     }
     return $rv;
   }
