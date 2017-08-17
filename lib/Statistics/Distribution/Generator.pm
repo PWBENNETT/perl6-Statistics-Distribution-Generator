@@ -37,8 +37,8 @@ class Statistics::Distribution::Generator {
 
   sub gaussian is export {
     my ($μ, $σ) = @_;
-    $μ ||= 0;
-    $σ ||= 1 / 3;
+    $μ //= 0;
+    $σ //= 1 / 3;
     return Statistics::Distribution::Generator::gaussian.new(:$μ, :$σ);
   }
 
@@ -100,9 +100,7 @@ class Statistics::Distribution::Generator::gaussian is Statistics::Distribution:
   has Numeric $.σ;
 
   method FALLBACK {
-    my $U = rand;
-    my $V = rand;
-    return $.μ + (sqrt(-2 * log $U) * cos($two_pi * $V) * $.σ * 3);
+    return $.μ + (sqrt(-2 * log(rand())) * cos($two_pi * rand()) * $.σ * 3);
   }
 
 }
@@ -183,7 +181,7 @@ class Statistics::Distribution::Generator::γ is Statistics::Distribution::Gener
     my $p = e / ($Rorder + e);
     my ($q, $x, $u, $v);
     do {
-      $u = rand;
+      $u = rand();
       $v = _rand_nonzero();
       if ($u < $p){
         $x = exp((1 / $Rorder) * log($v));
@@ -193,7 +191,7 @@ class Statistics::Distribution::Generator::γ is Statistics::Distribution::Gener
         $x = 1 - log($v);
         $q = exp(($Rorder - 1) * log($x));
       }
-    } while (rand >= $q);
+    } while (rand() >= $q);
     return $x;
   }
 
